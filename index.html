@@ -50,7 +50,8 @@
     </div>
 
     <script>
-        const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNQCQJ6a31n8CaHsbys-hZTkrPPWr36q5txpGP9UjZsxG-0XbyRLf7qhAKx7fme3KAlG9LTejSpiI_/pub?gid=0&single=true&output=csv";
+        // 캐시 방지를 위해 주소 뒤에 실시간 시간값을 강제로 붙여 매번 새로운 파일로 인식하게 만들었습니다.
+        const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNQCQJ6a31n8CaHsbys-hZTkrPPWr36q5txpGP9UjZsxG-0XbyRLf7qhAKx7fme3KAlG9LTejSpiI_/pub?gid=0&single=true&output=csv&nocache=" + new Date().getTime();
 
         let branchDatabase = []; 
 
@@ -62,7 +63,7 @@
                 })
                 .then(csvText => {
                     parseCSV(csvText); 
-                    // [수정 완료] 요청하신 직방 전용 DB 연동 성공 문구로 교체
+                    // 확실하게 직방 전용 문구 고정
                     document.getElementById('connectionStatus').innerText = "✅ 직방 서비스 지정점 DB 연동 완료!";
                     document.getElementById('connectionStatus').className = "text-center text-xs font-semibold mb-4 p-2 bg-green-50 text-green-700 rounded-lg";
                 })
