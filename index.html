@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AS 서비스 지정점 조회 시스템</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col items-center py-10 px-4">
+
+    <div class="max-w-md w-full bg-white shadow-lg rounded-2xl p-6 border border-gray-100">
+        <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">지정점 조회 시스템</h1>
+        
+        <div id="connectionStatus" class="text-center text-xs font-semibold mb-4 p-2 bg-yellow-50 text-yellow-700 rounded-lg animate-pulse">
+            구글 스프레드시트 데이터 불러오는 중...
+        </div>
+        
+        <div class="mb-5">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">1단계: 제품군 선택</label>
+            <select id="categorySelect" class="w-full border border-gray-300 rounded-lg p-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="도어락">도어락</option>
+                <option value="홈네트워크">홈네트워크</option>
+            </select>
+        </div>
+
+        <div class="mb-5">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">2단계: 주소 검색</label>
+            <div class="flex gap-2 mb-2">
+                <input type="text" id="postcode" placeholder="우편번호" readonly class="w-1/3 border border-gray-300 rounded-lg p-3 bg-gray-50 text-center focus:outline-none">
+                <button type="button" onclick="openAddrSearch()" class="w-2/3 bg-blue-500 text-white font-medium rounded-lg p-3 hover:bg-blue-600 transition">
+                    주소 찾기 🔍
+                </button>
+            </div>
+            <input type="text" id="address" placeholder="선택된 주소가 표시됩니다." readonly class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none">
+        </div>
+
+        <button type="button" onclick="searchBranch()" class="w-full bg-gray-900 text-white font-bold rounded-lg p-4 hover:bg-gray-800 transition mb-6 shadow-md">
+            3단계: 지정점 찾기 🚀
+        </button>
+
+        <hr class="border-gray-200 mb-6">
+
+        <div>
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">4단계: 검색 결과</h2>
+            <div id="resultArea">
+                <p class="text-gray-400 text-center py-6 text-sm">제품군을 선택하고 주소를 검색해주세요.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 제공해주신 웹에 게시(CSV) 주소 원본
+        const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNQCQJ6a31n8CaHsbys-hZTkrPPWr36q5txpGP9UjZsxG-0XbyRLf7qhAKx7fme3KAlG9LTejSpiI_/pub?gid=0&single=true&output=csv";
+
+        let branchDatabase = []; 
+
+        window.onload = function() {
+            // 이제 인터넷 서버(Netlify) 위에서 작동하므로 차단 없이 다이렉트로 안전하게 읽어옵니다.
+            fetch(googleSheetCsvUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('네트워크 응답 없음');
+                    return response.text();
+                })
+                .then(csvText => {
+                    parseCSV(csvText); 
+                    document.getElementById('connectionStatus').innerText = "✅ 구글 시트 연동 완료! 실시간 데이터 사용 중";
+                    document.getElementById('connectionStatus').className = "text-center text-xs font-semibold mb-4 p-2 bg-green-50 text-green-700 rounded-lg";
+                })
+                .catch(error => {
+                    console.error("로드 오류 내역:", error);
+                    document.getElementById('connectionStatus').innerText = "❌ 데이터 연동 실패 (네트워크 상태를 확인해 주세요)";
+                    document.getElementById('connectionStatus').className = "text-center text-xs font-semibold mb-4 p-2 bg-red-50 text-red-700 rounded-lg";
+                });
+        };
+
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/);
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                const columns = lines[i].split(",");
+                
+                if(columns.length >= 3) {
+                    branchDatabase.push({
+                        category: columns[0]?.replace(/"/g, "").trim(),
+                        name: columns[1]?.replace(/"/g, "").trim(),
+                        postcode: columns[2]?.replace(/"/g, "").trim(),
+                        phone: columns[3]?.replace(/"/g, "").trim() || "연락처 없음"
+                    });
+                }
+            }
+        }
+
+        function openAddrSearch() {
+            new daum.Postcode({
+                oncomplete: function(data) {
+                    document.getElementById('postcode').value = data.zonecode; 
+                    document.getElementById('address').value = data.roadAddress || data.address; 
+                }
+            }).open();
+        }
+
+        function searchBranch() {
+            const category = document.getElementById('categorySelect').value;
+            const postcode = document.getElementById('postcode').value;
+            const resultArea = document.getElementById('resultArea');
+
+            if (!postcode) {
+                alert("먼저 '주소 찾기' 버튼을 눌러 주소를 선택해주세요!");
+                return;
+            }
+
+            const inputAreaCode = postcode.substring(0, 3);
+
+            const matchedBranches = branchDatabase.filter(branch => {
+                if (!branch.postcode) return false;
+                
+                let cleanPostcode = branch.postcode.padStart(5, '0');
+                const branchAreaCode = cleanPostcode.substring(0, 3);
+                
+                return branch.category === category && branchAreaCode === inputAreaCode;
+            });
+
+            if (matchedBranches.length > 0) {
+                let htmlContent = '';
+                matchedBranches.forEach(branch => {
+                    htmlContent += `
+                        <div class="p-4 mb-3 border border-blue-100 bg-blue-50/50 rounded-xl">
+                            <div class="font-bold text-gray-900 text-base mb-1">${branch.name}</div>
+                            <div class="text-sm text-gray-500 mb-2">지정 구분: ${branch.category} (우편번호: ${branch.postcode})</div>
+                            <a href="tel:${branch.phone}" class="inline-flex items-center text-sm font-semibold text-blue-600 hover:underline">
+                                📞 ${branch.phone}
+                            </a>
+                        </div>
+                    `;
+                });
+                resultArea.innerHTML = htmlContent;
+            } else {
+                resultArea.innerHTML = `
+                    <div class="text-center py-6">
+                        <p class="text-gray-500 font-medium text-sm mb-1">해당 지역에 배정된 지정점이 없습니다.</p>
+                        <p class="text-gray-400 text-xs">고객센터(1588-XXXX)로 직접 문의해주세요.</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
