@@ -12,8 +12,11 @@
     <div class="max-w-md w-full bg-white shadow-lg rounded-2xl p-6 border border-gray-100">
         
         <div class="flex items-center justify-center gap-2 mb-6">
-            <img src="https://images.zigbang.com/images/ci/zigbang_logo.png" alt="직방 로고" class="h-7 w-auto object-contain">
-            <h1 class="text-2xl font-bold text-gray-900">직방 서비스 지정점 찾기</h1>
+            <svg class="h-8 w-8 shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 12 L15 42 L27 52 L50 31 L73 52 L85 42 Z" fill="#ff681b"/>
+                <path d="M27 52 L27 75 L42 75 L42 60 L58 60 L58 75 L73 75 L73 52 L50 31 Z" fill="#ff681b"/>
+            </svg>
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">직방 서비스 지정점 찾기</h1>
         </div>
         
         <div id="connectionStatus" class="text-center text-xs font-semibold mb-4 p-2 bg-yellow-50 text-yellow-700 rounded-lg animate-pulse">
@@ -94,6 +97,7 @@
             }
         }
 
+        // 카카오 주소창 열기
         function openAddrSearch() {
             new daum.Postcode({
                 oncomplete: function(data) {
@@ -103,6 +107,7 @@
             }).open();
         }
 
+        // 매칭 검색 엔진
         function searchBranch() {
             const category = document.getElementById('categorySelect').value;
             const postcode = document.getElementById('postcode').value; 
@@ -125,12 +130,11 @@
             if (matchedBranches.length > 0) {
                 let htmlContent = '';
                 matchedBranches.forEach(branch => {
-                    // 직방 오렌지 감성에 맞추어 결과 카드의 테두리와 텍스트 포인트를 살짝 조정했습니다.
                     htmlContent += `
                         <div class="p-4 mb-3 border border-orange-100 bg-orange-50/30 rounded-xl">
                             <div class="font-bold text-gray-900 text-base mb-1">${branch.name}</div>
                             <div class="text-sm text-gray-500 mb-2">${category} 서비스 지정점</div>
-                            <a href="tel:${branch.phone}" class="inline-flex items-center text-sm font-semibold style="color: #ff681b;" class="hover:underline">
+                            <a href="tel:${branch.phone}" class="inline-flex items-center text-sm font-semibold hover:underline">
                                 <span style="color: #ff681b;">📞 ${branch.phone}</span>
                             </a>
                         </div>
