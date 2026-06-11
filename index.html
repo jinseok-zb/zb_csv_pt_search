@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>직방 서비스지정점 조회</title>
+    <title>직방 서비스 지정점 찾기</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col items-center py-10 px-4">
 
     <div class="max-w-md w-full bg-white shadow-lg rounded-2xl p-6 border border-gray-100">
-        <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">직방 서비스지정점 조회</h1>
+        
+        <div class="flex items-center justify-center gap-2 mb-6">
+            <img src="https://images.zigbang.com/images/ci/zigbang_logo.png" alt="직방 로고" class="h-7 w-auto object-contain">
+            <h1 class="text-2xl font-bold text-gray-900">직방 서비스 지정점 찾기</h1>
+        </div>
         
         <div id="connectionStatus" class="text-center text-xs font-semibold mb-4 p-2 bg-yellow-50 text-yellow-700 rounded-lg animate-pulse">
             직방 서비스 지정점 DB 불러오는 중...
@@ -18,7 +22,7 @@
         
         <div class="mb-5">
             <label class="block text-sm font-semibold text-gray-700 mb-2">1단계: 제품군 선택</label>
-            <select id="categorySelect" class="w-full border border-gray-300 rounded-lg p-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="categorySelect" class="w-full border border-gray-300 rounded-lg p-3 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500">
                 <option value="도어락">도어락</option>
                 <option value="홈네트워크">홈네트워크</option>
             </select>
@@ -28,14 +32,14 @@
             <label class="block text-sm font-semibold text-gray-700 mb-2">2단계: 주소 검색</label>
             <div class="flex gap-2 mb-2">
                 <input type="text" id="postcode" placeholder="우편번호" readonly class="w-1/3 border border-gray-300 rounded-lg p-3 bg-gray-50 text-center focus:outline-none">
-                <button type="button" onclick="openAddrSearch()" class="w-2/3 bg-blue-500 text-white font-medium rounded-lg p-3 hover:bg-blue-600 transition">
+                <button type="button" onclick="openAddrSearch()" class="w-2/3 bg-gray-200 text-gray-700 font-medium rounded-lg p-3 hover:bg-gray-300 transition">
                     주소 찾기 🔍
                 </button>
             </div>
             <input type="text" id="address" placeholder="선택된 주소가 표시됩니다." readonly class="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 focus:outline-none">
         </div>
 
-        <button type="button" onclick="searchBranch()" class="w-full bg-gray-900 text-white font-bold rounded-lg p-4 hover:bg-gray-800 transition mb-6 shadow-md">
+        <button type="button" onclick="searchBranch()" class="w-full text-white font-bold rounded-lg p-4 transition mb-6 shadow-md hover:brightness-95 cursor-pointer" style="background-color: #ff681b;">
             3단계: 지정점 찾기 🚀
         </button>
 
@@ -50,7 +54,6 @@
     </div>
 
     <script>
-        // 캐시 차단을 포함한 실시간 구글 시트 웹게시 CSV 주소
         const googleSheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNQCQJ6a31n8CaHsbys-hZTkrPPWr36q5txpGP9UjZsxG-0XbyRLf7qhAKx7fme3KAlG9LTejSpiI_/pub?gid=0&single=true&output=csv&nocache=" + new Date().getTime();
 
         let branchDatabase = []; 
@@ -122,13 +125,13 @@
             if (matchedBranches.length > 0) {
                 let htmlContent = '';
                 matchedBranches.forEach(branch => {
-                    // [수정 사항 반영] 2행에 우편번호를 숨기고 "선택 제품군 + 서비스 지정점"만 출력하도록 포맷 변경
+                    // 직방 오렌지 감성에 맞추어 결과 카드의 테두리와 텍스트 포인트를 살짝 조정했습니다.
                     htmlContent += `
-                        <div class="p-4 mb-3 border border-blue-100 bg-blue-50/50 rounded-xl">
+                        <div class="p-4 mb-3 border border-orange-100 bg-orange-50/30 rounded-xl">
                             <div class="font-bold text-gray-900 text-base mb-1">${branch.name}</div>
                             <div class="text-sm text-gray-500 mb-2">${category} 서비스 지정점</div>
-                            <a href="tel:${branch.phone}" class="inline-flex items-center text-sm font-semibold text-blue-600 hover:underline">
-                                📞 ${branch.phone}
+                            <a href="tel:${branch.phone}" class="inline-flex items-center text-sm font-semibold style="color: #ff681b;" class="hover:underline">
+                                <span style="color: #ff681b;">📞 ${branch.phone}</span>
                             </a>
                         </div>
                     `;
